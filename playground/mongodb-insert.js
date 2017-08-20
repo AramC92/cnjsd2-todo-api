@@ -14,21 +14,21 @@ MongoClient.connect('mongodb://127.0.0.1:27017/TodoApp', (err, db) => {
     // success!
     console.log('Connected to Mongo');
 
-    // insert todo to collection
-    db.collection('Todo').insertOne({
+    // insert todo to collection using callback
+    db.collection('Todos').insertOne({
         // object to be inserted
         text: 'Something to do',
         completed: false
-    }, (err, docs) => {
+    }, (err, result) => {
         // error handling
         if (err) {
             return console.log('Unable to insert todo', err);
         }
-        // docs.ops stores all docs that were inserted
-        console.log(JSON.stringify(docs.ops, undefined, 2));
+        // result.ops stores all docs that were inserted
+        console.log(JSON.stringify(result.ops, undefined, 2));
     });
 
-    // insert user to collection
+    // insert user to collection using callback
     db.collection('Users').insertOne({
         name: 'Aram',
         age: 25,
@@ -48,6 +48,20 @@ MongoClient.connect('mongodb://127.0.0.1:27017/TodoApp', (err, db) => {
     // next 2 bytes are a process id
     // last 3 bytes are a counter (similar to mysql)
     // one can overwrite the default id value if required
+
+    // insert user to collection using promises
+    db.collection('Users')
+        .insertOne({
+            name: 'Promise',
+            age: 18,
+            location: 'js'
+        })
+        .then((result) => {
+            console.log(JSON.stringify(result.ops, undefined, 2));
+        })
+        .catch((err) => {
+            console.log('Something went wrong', err);
+        });
 
     // close connection to db
     db.close();

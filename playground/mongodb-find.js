@@ -2,6 +2,7 @@
 const {MongoClient, ObjectID} = require('mongodb');
 
 MongoClient.connect('mongodb://127.0.0.1:27017/TodoApp', (err, db) => {
+
     if (err) {
         return console.log('Unable to connect to Mongo');
     }
@@ -11,9 +12,9 @@ MongoClient.connect('mongodb://127.0.0.1:27017/TodoApp', (err, db) => {
     db.collection('Todos')
         .find()
         .toArray()
-        .then((docs) => {
+        .then((result) => {
             console.log('Todos');
-            console.log(JSON.stringify(docs, undefined, 2));
+            console.log(JSON.stringify(result, undefined, 2));
         })
         .catch((err) => {
             console.log('Unable to recover data', err);
@@ -25,9 +26,9 @@ MongoClient.connect('mongodb://127.0.0.1:27017/TodoApp', (err, db) => {
             _id: new ObjectID('59992a54a03c4420bc1b1312')
         })
         .toArray()
-        .then((docs) => {
+        .then((result) => {
             console.log('User with id 59992a54a03c4420bc1b1312');
-            console.log(JSON.stringify(docs, undefined, 2));
+            console.log(JSON.stringify(result, undefined, 2));
         })
         .catch((err) => {
             console.log('Unable to retrieve data', err);
@@ -46,7 +47,6 @@ MongoClient.connect('mongodb://127.0.0.1:27017/TodoApp', (err, db) => {
         .catch((err) => {
             console.log('Unable to recover data', err);
         });
-        
     
     db.close();
 });
