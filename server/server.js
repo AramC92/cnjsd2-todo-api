@@ -16,6 +16,18 @@ const app = express();
 // set middleware
 app.use(bodyParser.json());
 
+app.get('/todos', (req, res) => {
+
+    Todo.find()
+        .then((todos) => {
+            // send object back to easily add properties in the future
+            res.send({ todos });
+        })
+        .catch((e) => {
+            res.status(400).send(e);
+        });
+});
+
 app.post('/todos', (req, res) => {
 
     let todo = new Todo({
