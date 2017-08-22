@@ -20,7 +20,7 @@ app.get('/todos', (req, res) => {
 
     Todo.find()
         .then((todos) => {
-            // send object back to easily add properties in the future
+            // send object back instead of an array
             res.send({ todos });
         })
         .catch((e) => {
