@@ -3,6 +3,7 @@
 // npm modules
 const bodyParser = require('body-parser');
 const express = require('express');
+const { ObjectID } = require('mongodb');
 
 // local modules
 const { mongoose } = require('./db/mongoose');
@@ -26,6 +27,24 @@ app.get('/todos', (req, res) => {
         .catch((e) => {
             res.status(400).send(e);
         });
+});
+
+app.get('/todos/:id', (req, res) => {
+
+    let id = req.params.id;
+
+    if (!ObjectID.isValid(id)) {
+        res.send(404).send();
+    }
+
+    Todo.findById(id)
+        .then((todo) => {
+            if (!todo) {
+                return res.send(404).send();
+            }
+            res.send({ todo });
+        })
+        .catch((e) => res.status(400).send());
 });
 
 app.post('/todos', (req, res) => {
