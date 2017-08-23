@@ -1,5 +1,8 @@
 'use strict';
 
+// setup env
+require('./config/config');
+
 // npm modules
 const _ = require('lodash');
 const bodyParser = require('body-parser');
@@ -11,7 +14,7 @@ const { mongoose } = require('./db/mongoose');
 const { Todo } = require('./models/todo');
 const { User } = require('./models/user');
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT;
 
 const app = express();
 
@@ -112,7 +115,7 @@ app.patch('/todos/:id', (req, res) => {
 });
 
 app.listen(port, () => {
-    console.log(`[INFO] Server started on port ${port}.`);
+    console.log(`[INFO] Server started on port ${port}`);
 });
 
 module.exports = { app };
