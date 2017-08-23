@@ -1,6 +1,7 @@
 'use strict';
 
 // npm modules
+const _ = require('lodash');
 const bodyParser = require('body-parser');
 const express = require('express');
 const { ObjectID } = require('mongodb');
@@ -74,6 +75,36 @@ app.delete('/todos/:id', (req, res) => {
         .then((todo) => {
             if (!todo) {
                 return res.status(404).send();
+            }
+            res.send({ todo });
+        })
+        .catch((e) => res.status(400).send());
+});
+
+app.patch('/todos/:id', (req, res) => {
+    let id = req.params.id;
+    // cherry pick properties we want from body (if they exist) and assign them to an object
+    let body = _.pick(req.body, ['text', 'completed']);
+
+    if (!ObjectID.isValid(id)) {
+        return res.status(404).send();
+    }
+
+    if (_.isEmpty(body)) {
+        return res.status(400).send();
+    }
+
+    if (_.isBoolean(body.completed) && body.completed) {
+        body.completedAt = Date.now();
+    } else {
+        body.completedAt = null;
+        body.completed = false;
+    }
+
+    Todo.findByIdAndUpdate(id, { $set: body }, { new: true })
+        .then((todo) => {
+            if (!todo) {
+                res.status(404).send();
             }
             res.send({ todo });
         })
