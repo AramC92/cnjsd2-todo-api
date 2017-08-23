@@ -104,9 +104,11 @@ describe('server.js', () => {
     });
 
     describe('GET /todos/:id', () => {
-        it('should return a todo doc', (done) => {
+        it('should get a todo', (done) => {
+            let id = dummyTodos[0]._id.toHexString();
+
             request(app)
-                .get(`/todos/${dummyTodos[0]._id.toHexString()}`)
+                .get(`/todos/${id}`)
                 .expect(200)
                 .expect((res) => {
                     expect(res.body.todo.text).toBe(dummyTodos[0].text);
@@ -121,9 +123,47 @@ describe('server.js', () => {
                 .end(done);
         });
 
-        it('should return 404 if invalid todo', (done) => {
+        it('should return 404 if id invalid', (done) => {
             request(app)
                 .get('/todos/555')
+                .expect(404)
+                .end(done);
+        });
+    });
+
+    describe('DELETE /todos/:id', () => {
+        it('should delete a todo', (done) => {
+            let id = dummyTodos[0]._id.toHexString();
+
+            request(app)
+                .delete(`/todos/${id}`)
+                .expect(200)
+                .expect((res) => {
+                    expect(res.body.todo._id).toBe(id);
+                })
+                .end((err, res) => {
+                    if (err) {
+                        return done(err);
+                    }
+                    Todo.findById(id)
+                        .then((todo) => {
+                            expect(todo).toNotExist();
+                            done();
+                        })
+                        .catch((e) => done(e));
+                });
+        });
+
+        it('should return 404 if todo not found', (done) => {
+            request(app)
+                .delete(`/todos/${new ObjectID().toHexString()}`)
+                .expect(404)
+                .end(done);
+        });
+
+        it('should return 404 if invalid id', (done) => {
+            request(app)
+                .delete('/todos/555')
                 .expect(404)
                 .end(done);
         });
