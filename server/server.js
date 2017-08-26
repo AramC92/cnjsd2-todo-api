@@ -28,9 +28,7 @@ app.get('/todos', (req, res) => {
             // send object back instead of an array
             res.send({ todos });
         })
-        .catch((e) => {
-            res.status(400).send(e);
-        });
+        .catch((e) => res.status(400).send(e));
 });
 
 app.post('/todos', (req, res) => {
@@ -43,9 +41,7 @@ app.post('/todos', (req, res) => {
         .then((doc) => {
             res.send(doc);
         })
-        .catch((e) => {
-            res.status(400).send(e);
-        });
+        .catch((e) => res.status(400).send(e));
 });
 
 app.get('/todos/:id', (req, res) => {
@@ -86,7 +82,7 @@ app.delete('/todos/:id', (req, res) => {
 
 app.patch('/todos/:id', (req, res) => {
     let id = req.params.id;
-    // cherry pick properties we want from body (if they exist) and assign them to an object
+    // cherry pick certain properties from the request body (if they exist) and assign them to an object
     let body = _.pick(req.body, ['text', 'completed']);
 
     if (!ObjectID.isValid(id)) {
@@ -112,6 +108,20 @@ app.patch('/todos/:id', (req, res) => {
             res.send({ todo });
         })
         .catch((e) => res.status(400).send());
+});
+
+app.post('/users', (req, res) => {
+
+    let body = _.pick(req.body, ['email', 'password']);
+    let user = new User(body);
+
+    user.save()
+        .then(() => user.generateAuthToken())
+        .then((token) => {
+            // define custom header and assign the token as its key. also respond with the user object
+            res.header('x-auth', token).send(user);
+        })
+        .catch((e) => res.status(400).send(e));
 });
 
 app.listen(port, () => {
