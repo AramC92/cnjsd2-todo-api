@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const { isEmail } = require('validator');
 const jwt = require('jsonwebtoken');
 const { pick } = require('lodash');
+const bcrypt = require('bcryptjs');
 
 let UserSchema = new mongoose.Schema({
     email: {
@@ -76,7 +77,7 @@ UserSchema.methods.generateAuthToken = function () {
  * Find a user by an auth token
  */
 UserSchema.statics.findByToken = function (token) {
-    // attempt to verify token and get the data from it
+    // ensure integrity of token and retrieve data
     try {
         var decoded = jwt.verify(token, 'salt');
     } catch (e) {
@@ -92,6 +93,27 @@ UserSchema.statics.findByToken = function (token) {
         'tokens.access': 'auth' // make sure this is an auth token and not another kind of token
     });
 };
+
+// setup mongoose middleware
+// do something BEFORE saving the user to the database. (this = individual document)
+UserSchema.pre('save', function (next) {
+    // since we don't want the password to be hashed multiple times, we need to check if it has been modified
+    // for POST /users it will have been indeed modified (going from null to whatever is assigned from body.password)
+    if (this.isModified('password')) {
+        // use 10 rounds to generate salt
+        bcrypt.genSalt(10, (err, salt) => {
+            bcrypt.hash(this.password, salt, (err, hash) => {
+                // override plaintext password with hashed password
+                this.password = hash;
+                // now the password will be saved to the database
+                // from here it won't be modified again (unless the user resets it)
+                next();
+            });
+        })
+    } else {
+        next();
+    }   
+});
 
 let User = mongoose.model('User', UserSchema);
 
