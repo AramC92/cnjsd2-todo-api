@@ -13,6 +13,7 @@ const { ObjectID } = require('mongodb');
 const { mongoose } = require('./db/mongoose');
 const { Todo } = require('./models/todo');
 const { User } = require('./models/user');
+const { authenticate } = require('./middleware/authenticate');
 
 const port = process.env.PORT;
 
@@ -38,8 +39,8 @@ app.post('/todos', (req, res) => {
     });
 
     todo.save()
-        .then((doc) => {
-            res.send(doc);
+        .then((todo) => {
+            res.send(todo);
         })
         .catch((e) => res.status(400).send(e));
 });
@@ -81,6 +82,7 @@ app.delete('/todos/:id', (req, res) => {
 });
 
 app.patch('/todos/:id', (req, res) => {
+    
     let id = req.params.id;
     // cherry pick certain properties from the request body (if they exist) and assign them to an object
     let body = _.pick(req.body, ['text', 'completed']);
@@ -89,9 +91,7 @@ app.patch('/todos/:id', (req, res) => {
         return res.status(404).send();
     }
 
-    // if (_.isEmpty(body)) {
-    //     return res.status(400).send();
-    // }
+    // if (_.isEmpty(body)) return res.status(400).send(); <-- Something to consider but not essential
 
     if (_.isBoolean(body.completed) && body.completed) {
         body.completedAt = Date.now();
@@ -116,12 +116,18 @@ app.post('/users', (req, res) => {
     let user = new User(body);
 
     user.save()
-        .then(() => user.generateAuthToken())
+        .then((user) => user.generateAuthToken())
         .then((token) => {
-            // define custom header and assign the token as its key. also respond with the user object
+            // generate custom header and assign token to it. also respond with user document
             res.header('x-auth', token).send(user);
         })
         .catch((e) => res.status(400).send(e));
+});
+
+// private route (make sure user is properly authentificated)
+app.get('/users/me', authenticate, (req, res) => {
+    // get user from the authenticate middleware
+    res.send(req.user);
 });
 
 app.listen(port, () => {
