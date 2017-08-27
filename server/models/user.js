@@ -70,6 +70,21 @@ UserSchema.methods.generateAuthToken = function () {
         .then(() => token); 
 };
 
+/**
+ * Remove token from user
+ */
+UserSchema.methods.removeToken = function (token) {
+    // remove the WHOLE token object if the token property exists in the tokens array
+    // this doesn't take a find argument because we're updating an individual document
+    return this.update({
+        $pull: {
+            tokens: {
+                token
+            }
+        }
+    });
+};
+
 // add new statics to user schema
 // statics get called with the model itself (model methods) (collection = this)
 
