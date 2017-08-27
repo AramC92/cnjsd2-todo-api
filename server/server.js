@@ -8,6 +8,7 @@ const _ = require('lodash');
 const bodyParser = require('body-parser');
 const express = require('express');
 const { ObjectID } = require('mongodb');
+const bcrypt = require('bcryptjs');
 
 // local modules
 const { mongoose } = require('./db/mongoose');
@@ -116,7 +117,7 @@ app.post('/users', (req, res) => {
     let user = new User(body);
 
     user.save()
-        .then((user) => user.generateAuthToken())
+        .then(() => user.generateAuthToken())
         .then((token) => {
             // generate custom header and assign token to it. also respond with user document
             res.header('x-auth', token).send(user);
@@ -128,6 +129,24 @@ app.post('/users', (req, res) => {
 app.get('/users/me', authenticate, (req, res) => {
     // get user from the authenticate middleware
     res.send(req.user);
+});
+
+app.post('/users/login', (req, res) => {
+
+    let body = _.pick(req.body, ['email', 'password']);
+
+    User.findByCredentials(body.email, body.password)
+        .then((user) => {
+            // unlike above, we're chaining generateAuthToken in the same block
+            // otherwise the user returned by findByCredentials would be out of scope
+            // by chaining and returning a promise, any errors (if any) will be handled by the catch below
+            return user.generateAuthToken()
+                .then((token) => {
+                    // generated tokens are different each time because of the 'iat' token property (time created)
+                    res.header('x-auth', token).send(user);
+                });
+        })
+        .catch((e) => res.status(400).send());
 });
 
 app.listen(port, () => {

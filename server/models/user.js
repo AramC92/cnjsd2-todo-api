@@ -43,7 +43,7 @@ let UserSchema = new mongoose.Schema({
  * Override 'toJSON' default Schema method
  */
 UserSchema.methods.toJSON = function () {
-    // only show what WE want to show in the api calls, leave off secure properties
+    // only show what WE want to show in the api calls. leave off secure properties
     return pick(this.toObject(), ['_id', 'email']);
 };
 
@@ -54,13 +54,13 @@ UserSchema.methods.generateAuthToken = function () {
     // token access type
     let access = 'auth';
 
-    // token data
-    let token = {
+    // token payload data
+    let payload = {
         _id: this._id.toHexString(), // user id
         access // token type
     };
-    // sign token
-    token = jwt.sign(token, 'salt').toString(); // salt should be an env var... placeholder for now
+    // sign token (jwt also supports setting an expiration as its third argument (options argument))
+    let token = jwt.sign(payload, 'salt').toString(); // salt should be an env var... placeholder for now
 
     // push token to tokens array (update local user object)
     this.tokens.push({ access, token });
@@ -86,12 +86,37 @@ UserSchema.statics.findByToken = function (token) {
     }
 
     // find the associated user (if any) and return a promise
+    // returning a promise allows us to use 'then()' in server.js
     return this.findOne({
         '_id': decoded._id, // wrap _id in quotes just for consistency
         // query nested document
         'tokens.token': token, // make sure the token still exists in the database (if not, maybe the user has logged out)
         'tokens.access': 'auth' // make sure this is an auth token and not another kind of token
     });
+};
+
+/**
+ * Find an user by their given credentials
+ */
+UserSchema.statics.findByCredentials = function (email, password) {
+    // return promise to be chained in server.js
+    return this.findOne({ email })
+        .then((user) => {
+            if (!user) {
+                return Promise.reject();
+            }
+
+            // when a function doesn't support promises we can wrap it ourselves inside one
+            return new Promise((resolve, reject) => {
+                // compare plaintext password with hashed password
+                bcrypt.compare(password, user.password, (err, match) => {
+                    // resolve if they match, reject if they don't
+                    (match)
+                        ? resolve(user)
+                        : reject();
+                });
+            });
+        });
 };
 
 // setup mongoose middleware
