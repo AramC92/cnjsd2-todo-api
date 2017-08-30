@@ -7,21 +7,10 @@ const { User } = require('./../../models/user');
 const jwt = require('jsonwebtoken');
 
 // dummy data
-let dummyTodos = [
-    {
-        _id: new ObjectID(),
-        text: 'Dummy One'
-        // missing propereties get their values from the defaults defined in the model
-    },
-    {
-        _id: new ObjectID(),
-        text: 'Dummy Two',
-        completed: true,
-        completedAt: 333
-    }
-];
+// missing propereties get their values from the defaults defined in the model
 
 let dummyUserOneID = new ObjectID();
+let dummyUserTwoID = new ObjectID('599bfb7d92eb1f350e0656da');
 let dummyUsers = [
     {
         _id: dummyUserOneID,
@@ -33,11 +22,30 @@ let dummyUsers = [
         }]
     },
     {
-        _id: new ObjectID('599bfb7d92eb1f350e0656da'),
+        _id: dummyUserTwoID,
         email: '2_dummy@domain.com',
-        password: 'userTwoPass'
+        password: 'userTwoPass',
+        tokens: [{
+            access: 'auth',
+            token: jwt.sign({ _id: dummyUserTwoID, access: 'auth' }, 'salt').toString()
+        }]
     }
 ]
+
+let dummyTodos = [
+    {
+        _id: new ObjectID(),
+        text: 'Dummy One',
+        _creator: dummyUserOneID
+    },
+    {
+        _id: new ObjectID(),
+        text: 'Dummy Two',
+        _creator: dummyUserTwoID,
+        completed: true,
+        completedAt: 333
+    }
+];
 
 const populateTodos = (done) => {
     // wipe out collection
