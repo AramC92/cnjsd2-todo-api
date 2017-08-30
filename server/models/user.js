@@ -60,7 +60,7 @@ UserSchema.methods.generateAuthToken = function () {
         access // token type
     };
     // sign token (jwt also supports setting an expiration as its third argument (options argument))
-    let token = jwt.sign(payload, 'salt').toString(); // salt should be an env var... placeholder for now
+    let token = jwt.sign(payload, process.env.JWT_SECRET).toString(); // salt should be an env var... placeholder for now
 
     // push token to tokens array (update local user object)
     this.tokens.push({ access, token });
@@ -94,7 +94,7 @@ UserSchema.methods.removeToken = function (token) {
 UserSchema.statics.findByToken = function (token) {
     // ensure integrity of token and retrieve data
     try {
-        var decoded = jwt.verify(token, 'salt');
+        var decoded = jwt.verify(token, process.env.JWT_SECRET);
     } catch (e) {
         // return new Promise((resolve, reject) => reject());
         return Promise.reject(); // shorthand of the above. prevent the execution of 'then()' in authentificate.js

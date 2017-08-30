@@ -18,7 +18,7 @@ let dummyUsers = [
         password: 'userOnePass',
         tokens: [{
             access: 'auth',
-            token: jwt.sign({ _id: dummyUserOneID, access: 'auth' }, 'salt').toString()
+            token: jwt.sign({ _id: dummyUserOneID, access: 'auth' }, process.env.JWT_SECRET).toString()
         }]
     },
     {
@@ -27,7 +27,7 @@ let dummyUsers = [
         password: 'userTwoPass',
         tokens: [{
             access: 'auth',
-            token: jwt.sign({ _id: dummyUserTwoID, access: 'auth' }, 'salt').toString()
+            token: jwt.sign({ _id: dummyUserTwoID, access: 'auth' }, process.env.JWT_SECRET).toString()
         }]
     }
 ]
